@@ -13,14 +13,16 @@ Amani is a way to patch configuration files.
 constants.py
 
     class A:
+
         a = 1
         b = []
+        c = [1, 3, 5]
 
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.mysql',
             'NAME': 'maps',
-            'USER': '',
+            'USER': 'root',
             'PASSWORD': '',
             'HOST': '',
             'PORT': '3306',
@@ -29,28 +31,18 @@ constants.py
 
     try:
         import amani
-        amani.patch(__file__, globals(), prefix='test')
+        g = globals()
+        amani.patch(__file__, g)
     except:
         pass
 
-    print A.a
-    print A.b
-    print DATABASES['default']
 
+patch_constants.py
 
-test_constants.json
-
-    [
+    PATCHES = [
         ["A", "a", 2],
         ["A", "b", ["test"]],
-        ["DATABASES", "default",
-            {
-                "ENGINE": "django.db.backends.mysql",
-                "NAME": "maps",
-                "USER": "user",
-                "PASSWORD": "password",
-                "HOST": "",
-                "PORT": "3306"
-            }
-        ]
+        ["A", "c", 1, 2**32],
+        ["DATABASES", "default", "USER", "username"],
+        ["DATABASES", "default", "PASSWORD", "pass-WORD"]
     ]

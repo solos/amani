@@ -4,29 +4,49 @@
 __version__ = '0.0.1'
 __author__ = 'solos'
 
+import os
+import imp
+from inspect import isclass
+from collections import deque
 
-def patch(abspath, g, prefix='test'):
+
+def patch(abspath, g, prefix='patch'):
+    patches = []
+    absdir, basename = os.path.split(os.path.realpath(abspath))
+    barename, suffix = os.path.splitext(basename)
+    module_name = '{prefix}_{barename}'.format(**locals())
+    fp, pathname, desc = imp.find_module(module_name)
     try:
-        import os
-        import json
-        import traceback
-        from inspect import isclass
-        absdir, basename = os.path.split(os.path.realpath(abspath))
-        barename, suffix = os.path.splitext(basename)
-        patch_file = '{absdir}/{prefix}_{barename}.json'.format(**locals())
-        patches = json.loads(file(patch_file).read())
-        for (name, key, value) in patches:
-            if name in g:
-                if isinstance(g[name], (unicode, basestring, list)):
-                    g[name] = value
-                elif isclass(g[name]):
-                    setattr(g[name], key, value)
-                elif isinstance(g[name], dict):
-                    g[name][key] = value
-                elif isinstance(g[name], tuple):
-                    g[name] = tuple(value)
-                elif isinstance(g[name], set):
-                    g[name] = set(value)
-        return patches
-    except:
-        print traceback.format_exc()
+        module = imp.load_module(module_name, fp, pathname, desc)
+        patches = module.PATCHES
+    except Exception, e:
+        print e
+        patches = []
+    finally:
+        if fp:
+            fp.close()
+    for i in patches:
+        patch = deque(i)
+        name = patch.popleft()
+        temp = g[name]
+        rpatch(temp, patch)
+
+
+def rpatch(temp, patch):
+    length = len(patch)
+    if length > 2:
+        key = patch.popleft()
+        if isinstance(temp, dict) or isinstance(key, int):
+            temp = temp[key]
+        elif isclass(temp):
+            temp = getattr(temp, key)
+        rpatch(temp, patch)
+    elif length == 2:
+        key = patch.popleft()
+        value = patch.popleft()
+        if isinstance(key, int) or isinstance(temp, dict):
+            temp[key] = value
+        elif isclass(temp):
+            setattr(temp, key, value)
+    else:
+        return

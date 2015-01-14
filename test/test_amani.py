@@ -5,24 +5,8 @@ import sys
 sys.path.append('..')
 
 import unittest
-import amani
-
-
-class A:
-
-    a = 1
-    b = []
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'maps',
-        'USER': 'root',
-        'PASSWORD': '',
-        'HOST': '',
-        'PORT': '3306',
-    }
-}
+from constants import A
+from constants import DATABASES
 
 
 class DefaultTestCase(unittest.TestCase):
@@ -34,15 +18,11 @@ class DefaultTestCase(unittest.TestCase):
         pass
 
     def test_patch_class(self):
-        try:
-            g = globals()
-            patches = amani.patch(__file__, g)
-            self.assertEqual(A.a, 2)
-            self.assertEqual(A.b, ['test'])
-            self.assertEqual(DATABASES['default']['USER'], 'user')
-            self.assertEqual(DATABASES['default']['PASSWORD'], 'password')
-        except Exception, e:
-            print 'e', e
+        self.assertEqual(A.a, 2)
+        self.assertEqual(A.b, ['test'])
+        self.assertEqual(A.c[1], 2**32)
+        self.assertEqual(DATABASES['default']['USER'], 'username')
+        self.assertEqual(DATABASES['default']['PASSWORD'], 'pass-WORD')
 
 
 def suite():
